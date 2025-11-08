@@ -2,6 +2,8 @@
 
 import logging
 import torch
+import argparse
+import os
 from datetime import datetime
 from src.config import config
 from src.data.dataset import load_dataset
@@ -14,33 +16,67 @@ from src.utils.logger import setup_logger
 from src.utils.history import save_history
 from src.utils.plotter import plot_results
 
+def parse_args():
+    """解析命令行参数。"""
+    parser = argparse.ArgumentParser(description="运行联邦学习模拟")
+    
+    # 添加可以覆盖 YAML 配置的参数
+    parser.add_argument('--dataset.distribution', type=str, help="数据分布方式 (iid or non-iid)")
+    parser.add_argument('--federation.global_rounds', type=int, help="全局通信总轮次")
+    parser.add_argument('--training.learning_rate', type=float, help="学习率")
+    parser.add_argument('--training.local_epochs', type=int, help="客户端本地训练轮次")
+    parser.add_argument('--model.name', type=str, help="要使用的模型名称 (SimpleCNN or ComplexCNN)")
+    parser.add_argument('--device', type=str, help="训练设备 (cuda or cpu)")
+    # 新增功能性参数
+    parser.add_argument('--load_model', type=str, default=None, help="要加载的预训练模型文件的路径 (例如: saved_models/ComplexCNN_MNIST_best.pth)")
+    
+    return parser.parse_args()
+
+def update_config_from_args(config, args):
+    """用命令行参数更新配置字典。"""
+    args_dict = vars(args)
+    for key, value in args_dict.items():
+        if value is not None:
+            # 将点分隔的键转换为嵌套字典的键
+            keys = key.split('.')
+            d = config
+            for k in keys[:-1]:
+                d = d.setdefault(k, {})
+            d[keys[-1]] = value
+            print(f"[配置更新] 通过命令行将 '{key}' 设置为: {value}")
+
 def main():
     """
     主函数，负责组装和启动整个联邦学习模拟流程。
     """
-    # 0. 生成一个唯一的实验时间戳
+    # 0. 解析命令行参数并更新配置
+    args = parse_args()
+    update_config_from_args(config, args)
+
+    # 1. 生成一个唯一的实验时间戳
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-    # 1. 设置日志记录器
+    # 2. 设置日志记录器
     logger = setup_logger(timestamp)
     logger.info("[主程序] 开始初始化...")
+    logger.info(f"[主程序] 当前配置: {config}")
 
-    # 2. 加载数据集
+    # 3. 加载数据集
     logger.info(f"[主程序] 正在加载数据集: {config['dataset']['name']}...")
     train_dataset, test_dataset = load_dataset(config)
     logger.info("[主程序] 数据集加载完成。")
 
-    # 3. 划分数据给客户端
+    # 4. 划分数据给客户端
     logger.info(f"[主程序] 正在以 {config['dataset']['distribution']} 方式将数据划分给 {config['dataset']['num_clients']} 个客户端...")
     client_data_map = split_data(train_dataset, config)
     logger.info("[主程序] 数据划分完成。")
 
-    # 4. 初始化全局模型
+    # 5. 初始化全局模型
     logger.info(f"[主程序] 正在初始化全局模型: {config['model']['name']}...")
     global_model = get_model(config)
     logger.info("[主程序] 全局模型初始化完成。")
 
-    # 模型“干跑” (Dry Run)
+  # 模型“干跑” (Dry Run)
     logger.info("[主程序] 正在对全局模型进行干跑以确定最终结构...")
     dummy_input_shape = (1, config['model']['input_channels'], 28, 28)
     if config['dataset']['name'] == 'CIFAR10':
@@ -48,8 +84,21 @@ def main():
     dummy_input = torch.randn(dummy_input_shape)
     global_model(dummy_input)
     logger.info("[主程序] 模型结构已根据输入尺寸最终确定。")
+    
+    # 如果指定了加载模型，则加载权重
+    if args.load_model:
+        if os.path.exists(args.load_model):
+            try:
+                global_model.load_state_dict(torch.load(args.load_model))
+                logger.info(f"[主程序] 成功从 '{args.load_model}' 加载预训练模型。")
+            except Exception as e:
+                logger.error(f"[主程序] 加载模型失败: {e}")
+                exit(1)
+        else:
+            logger.error(f"[主程序] 找不到指定的模型文件: {args.load_model}")
+            exit(1)
 
-    # 5. 创建所有客户端实例
+    # 6. 创建所有客户端实例
     logger.info("[主程序] 正在创建客户端实例...")
     all_clients = []
     for i in range(config['dataset']['num_clients']):
@@ -57,11 +106,11 @@ def main():
         all_clients.append(client)
     logger.info(f"[主程序] {len(all_clients)} 个客户端创建完成。")
 
-    # 6. 初始化联邦学习策略
+    # 7. 初始化联邦学习策略
     strategy = FedAvgStrategy(config, logger)
     logger.info(f"[主程序] 已选择联邦策略: {type(strategy).__name__}")
 
-    # 7. 初始化并创建服务器
+    # 8. 初始化并创建服务器
     logger.info("[主程序] 正在初始化服务器...")
     server = Server(
         global_model=global_model,
@@ -73,13 +122,13 @@ def main():
     )
     logger.info("[主程序] 服务器初始化完成。")
 
-    # 8. 启动服务器，开始联邦学习，并获取结果
+    # 9. 启动服务器，开始联邦学习，并获取结果
     results = server.run()
 
-    # 9. 保存本次实验的记录
+    # 10. 保存本次实验的记录
     save_history(config, results['best_accuracy'])
 
-    # 10. 绘制并保存结果图表
+    # 11. 绘制并保存结果图表
     plot_results(results, config, timestamp)
 
 if __name__ == '__main__':

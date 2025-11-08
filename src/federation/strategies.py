@@ -3,12 +3,13 @@
 import random
 import logging
 from src.federation.aggregator import aggregate_weights
+from src.config_schema import AppConfig
 
 class FedAvgStrategy:
     """
     实现了 FedAvg 策略，负责协调一轮联邦学习的完整流程。
     """
-    def __init__(self, config: dict, logger: logging.Logger):
+    def __init__(self, config: AppConfig, logger: logging.Logger):
         """
         初始化策略。
         """
@@ -19,7 +20,7 @@ class FedAvgStrategy:
         """
         从所有客户端中随机选择一部分参与本轮训练。
         """
-        clients_per_round = self.config['federation']['clients_per_round']
+        clients_per_round = self.config.federation.clients_per_round
         num_clients = len(all_clients)
         
         clients_per_round = min(clients_per_round, num_clients)

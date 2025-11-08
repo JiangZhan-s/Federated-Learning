@@ -8,8 +8,8 @@ dataset:
 # 联邦学习全局配置
 federation:
   algorithm: "FedAvg"  # 联邦学习算法
-  global_rounds: 5  # 全局通信总轮次
-  clients_per_round: 10  # 每轮随机选取的客户端数量
+  global_rounds: 2  # 全局通信总轮次
+  clients_per_round: 5  # 每轮随机选取的客户端数量
 
 # 客户端本地训练配置
 training:

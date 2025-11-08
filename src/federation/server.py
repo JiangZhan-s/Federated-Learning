@@ -4,6 +4,7 @@ import torch
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
 import logging
+import os
 
 class Server:
     """
@@ -23,6 +24,11 @@ class Server:
             batch_size=config['training']['batch_size'],
             shuffle=False
         )
+        
+        # 创建用于保存模型的目录
+        self.save_dir = "saved_models"
+        if not os.path.exists(self.save_dir):
+            os.makedirs(self.save_dir)
 
     def run(self):
         """
@@ -54,8 +60,10 @@ class Server:
             accuracies.append(accuracy)
             losses.append(loss)
 
+            # 如果当前准确率超过历史最佳，则保存模型
             if accuracy > best_accuracy:
                 best_accuracy = accuracy
+                self.save_model(current_round, best_accuracy)
 
         self.logger.info(f"\n[服务器] 联邦学习流程结束。最佳准确率: {best_accuracy:.2f}%")
         
@@ -92,3 +100,17 @@ class Server:
         
         self.global_model.to("cpu")
         return accuracy, test_loss
+
+    def save_model(self, round_num, accuracy):
+        """保存当前全局模型的权重。"""
+        model_name = self.config['model']['name']
+        dataset_name = self.config['dataset']['name']
+        
+        filename = f"{model_name}_{dataset_name}_best.pth"
+        filepath = os.path.join(self.save_dir, filename)
+        
+        try:
+            torch.save(self.global_model.state_dict(), filepath)
+            self.logger.info(f"[服务器] 新的最佳模型已保存! 轮次: {round_num + 1}, 准确率: {accuracy:.2f}%, 文件: {filepath}")
+        except IOError as e:
+            self.logger.error(f"[服务器] 保存模型失败。原因: {e}")
