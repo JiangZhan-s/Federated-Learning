@@ -1,4 +1,9 @@
 # src/utils/history.py
+"""
+实验历史记录模块
+负责保存联邦学习实验的配置和结果到CSV文件中。
+用于跟踪和比较不同实验的性能。
+"""
 
 import os
 import csv

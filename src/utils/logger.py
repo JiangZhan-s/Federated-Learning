@@ -1,4 +1,9 @@
 # src/utils/logger.py
+"""
+日志记录模块
+提供联邦学习实验的日志记录功能。
+支持同时输出到控制台和文件，便于调试和结果追踪。
+"""
 
 import logging
 import os
@@ -28,14 +33,14 @@ def setup_logger(timestamp: str):
         logger.handlers.clear()
 
     # 创建文件处理器 (FileHandler)
-    file_handler = logging.FileHandler(log_filename, encoding='utf-8')
     file_formatter = logging.Formatter('%(asctime)s - %(message)s')
+    file_handler = logging.FileHandler(log_filename, encoding='utf-8')
     file_handler.setFormatter(file_formatter)
     logger.addHandler(file_handler)
 
     # 创建控制台处理器 (StreamHandler)
-    console_handler = logging.StreamHandler()
     console_formatter = logging.Formatter('%(message)s') # 控制台只输出消息
+    console_handler = logging.StreamHandler()
     console_handler.setFormatter(console_formatter)
     logger.addHandler(console_handler)
 

@@ -19,7 +19,7 @@ dataset:
   name: "MNIST"  # 数据集名称 (例如: "MNIST", "CIFAR10")
   path: "./data"  # 数据存储路径
   num_clients: 100  # 模拟的客户端总数
-  distribution: "iid" # 数据分布方式 ("iid" 或 "non-iid")
+  distribution: "non-iid" # 数据分布方式 ("iid" 或 "non-iid")
 
 # 模型配置
 model:

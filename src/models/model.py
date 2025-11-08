@@ -1,4 +1,9 @@
 # src/models/model.py
+"""
+模型定义模块
+提供联邦学习中使用的神经网络模型，包括简单CNN和复杂CNN。
+支持动态输入尺寸调整，适用于不同数据集。
+"""
 
 import torch
 from torch import nn

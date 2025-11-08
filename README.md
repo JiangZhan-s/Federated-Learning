@@ -53,6 +53,9 @@ source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
 
 # 3. 安装依赖
 pip install -r requirements.txt
+
+# 4. 测试云此那个
+python scripts/run_federated_simulation.py
 ```
 
 ## 5. 开发指南

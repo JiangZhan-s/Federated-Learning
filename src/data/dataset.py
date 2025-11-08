@@ -1,4 +1,9 @@
 # src/data/dataset.py
+"""
+数据集加载和准备模块
+提供联邦学习中常用的数据集加载功能，包括MNIST和CIFAR-10。
+负责数据下载、预处理和标准化。
+"""
 
 from torchvision import datasets, transforms
 

@@ -1,4 +1,9 @@
 # src/training/trainer.py
+"""
+训练器模块
+实现联邦学习中客户端的本地训练逻辑。
+支持FedAvg和FedProx算法的本地优化。
+"""
 
 import torch
 from torch.utils.data import DataLoader

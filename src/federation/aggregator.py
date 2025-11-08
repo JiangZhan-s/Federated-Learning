@@ -1,4 +1,9 @@
 # src/federation/aggregator.py
+"""
+模型聚合器模块
+实现联邦学习中的模型权重聚合功能。
+支持FedAvg算法的加权平均聚合。
+"""
 
 from collections import OrderedDict
 import torch

@@ -1,4 +1,9 @@
 # src/data/preprocessing.py
+"""
+数据预处理模块
+负责将训练数据集按照IID或Non-IID方式划分给多个客户端。
+支持联邦学习中的数据分布模拟。
+"""
 
 import numpy as np
 from torch.utils.data import Subset

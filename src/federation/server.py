@@ -1,4 +1,9 @@
 # src/federation/server.py
+"""
+联邦学习服务器模块
+实现联邦学习的中心协调器，负责模型分发、客户端协调、模型聚合和评估。
+管理整个联邦学习训练流程。
+"""
 
 import torch
 from torch.utils.data import DataLoader

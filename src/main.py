@@ -1,4 +1,8 @@
 # src/main.py
+"""
+联邦学习主程序入口
+负责初始化配置、加载数据、创建客户端和服务器，并启动联邦学习模拟。
+"""
 
 import logging
 import torch
@@ -19,6 +23,7 @@ from src.utils.plotter import plot_results
 def parse_args():
     """
     解析命令行参数，允许在运行时覆盖 YAML 文件中的配置。
+    返回解析后的参数对象。
     """
     parser = argparse.ArgumentParser(description="运行联邦学习模拟")
     
@@ -44,6 +49,11 @@ def parse_args():
 def update_config_from_args(config, args):
     """
     使用命令行传入的参数更新从 YAML 文件加载的配置字典。
+    支持嵌套键的更新，如 'dataset.distribution'。
+    
+    参数:
+    - config: 配置字典
+    - args: 解析后的命令行参数对象
     """
     args_dict = vars(args)
     for key, value in args_dict.items():
@@ -60,6 +70,7 @@ def update_config_from_args(config, args):
 def main():
     """
     主函数，负责组装和启动整个联邦学习模拟流程。
+    包括数据加载、模型初始化、客户端创建、服务器运行等步骤。
     """
     # 0. 解析命令行参数并更新配置
     args = parse_args()
@@ -88,7 +99,7 @@ def main():
     global_model = get_model(config)
     logger.info("[主程序] 全局模型初始化完成。")
 
-  # 模型“干跑” (Dry Run)
+    # 模型"干跑" (Dry Run) - 通过一次前向传播确定模型结构
     logger.info("[主程序] 正在对全局模型进行干跑以确定最终结构...")
     dummy_input_shape = (1, config['model']['input_channels'], 28, 28)
     if config['dataset']['name'] == 'CIFAR10':

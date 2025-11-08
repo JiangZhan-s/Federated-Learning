@@ -1,4 +1,9 @@
 # src/federation/strategies.py
+"""
+联邦学习策略模块
+实现不同的联邦学习协调策略，如FedAvg。
+负责客户端选择、本地训练协调和模型聚合。
+"""
 
 import random
 import logging

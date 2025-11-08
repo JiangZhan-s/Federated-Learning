@@ -1,4 +1,9 @@
 # src/utils/plotter.py
+"""
+结果可视化模块
+提供联邦学习实验结果的图表绘制和保存功能。
+生成准确率和损失随训练轮次变化的曲线图。
+"""
 
 import matplotlib.pyplot as plt
 import os

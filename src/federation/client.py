@@ -1,4 +1,9 @@
 # src/federation/client.py
+"""
+联邦学习客户端模块
+模拟联邦学习中的客户端参与方，负责本地模型训练和更新。
+每个客户端在本地数据上训练模型，并将更新发送给服务器。
+"""
 
 import copy
 from src.training.trainer import Trainer

@@ -1,4 +1,9 @@
 # src/config.py
+"""
+配置文件管理模块
+负责加载和提供联邦学习项目的配置参数。
+支持从YAML文件加载配置，并提供全局配置字典。
+"""
 
 import yaml
 from typing import Any, Dict
@@ -15,10 +20,14 @@ def load_config(path: str = _DEFAULT_CONFIG_PATH) -> Dict[str, Any]:
     加载并解析 YAML 配置文件。
 
     参数:
-    path (str): YAML 配置文件的路径。
+    path (str): YAML 配置文件的路径。默认为项目配置目录下的fedavg.yaml。
 
     返回:
-    dict: 包含配置参数的字典。
+    dict: 包含配置参数的字典，包含数据集、模型、训练等所有配置项。
+
+    异常:
+    - FileNotFoundError: 当配置文件不存在时
+    - yaml.YAMLError: 当YAML格式错误时
     """
     try:
         with open(path, "r", encoding="utf-8") as f:
