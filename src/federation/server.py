@@ -35,9 +35,13 @@ class Server:
         if not os.path.exists(self.save_dir):
             os.makedirs(self.save_dir)
 
-    def run(self):
+    def run(self, initial_evaluation: bool = False):
         """
         启动并运行整个联邦学习流程。
+
+        参数:
+        initial_evaluation (bool): 是否在开始训练前进行一次初始评估。
+                                   这在加载预训练模型时很有用。
 
         返回:
         dict: 包含 'best_accuracy', 'accuracies', 'losses' 的结果字典。
@@ -45,6 +49,10 @@ class Server:
         self.logger.info("[服务器] 开始联邦学习流程...")
         
         best_accuracy = 0.0
+        if initial_evaluation:
+            self.logger.info("[服务器] 进行初始评估...")
+            best_accuracy, initial_loss = self.evaluate()
+        
         accuracies = []
         losses = []
         global_rounds = self.config['federation']['global_rounds']

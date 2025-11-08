@@ -144,7 +144,8 @@ def main():
     logger.info("[主程序] 服务器初始化完成。")
 
     # 9. 启动服务器，开始联邦学习，并获取结果
-    results = server.run()
+    # 如果指定了加载模型，则在训练开始前进行一次评估
+    results = server.run(initial_evaluation=bool(args.load_model))
 
     # 10. 保存本次实验的记录
     save_history(config, results['best_accuracy'])
