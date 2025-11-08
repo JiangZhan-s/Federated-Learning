@@ -19,6 +19,8 @@ venv.bak/
 # !data/.gitkeep
 data/
 
+!src/data
+
 # 日志和实验结果
 logs/
 plots/

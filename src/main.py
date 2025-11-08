@@ -17,27 +17,39 @@ from src.utils.history import save_history
 from src.utils.plotter import plot_results
 
 def parse_args():
-    """解析命令行参数。"""
+    """
+    解析命令行参数，允许在运行时覆盖 YAML 文件中的配置。
+    """
     parser = argparse.ArgumentParser(description="运行联邦学习模拟")
     
-    # 添加可以覆盖 YAML 配置的参数
+    # --- 数据和模型相关参数 ---
     parser.add_argument('--dataset.distribution', type=str, help="数据分布方式 (iid or non-iid)")
+    parser.add_argument('--model.name', type=str, help="要使用的模型名称 (SimpleCNN or ComplexCNN)")
+    
+    # --- 联邦学习核心参数 ---
+    parser.add_argument('--federation.algorithm', type=str, help="联邦学习算法 (FedAvg or FedProx)")
     parser.add_argument('--federation.global_rounds', type=int, help="全局通信总轮次")
+    parser.add_argument('--federation.mu', type=float, help="FedProx 的近端项系数")
+    
+    # --- 本地训练参数 ---
     parser.add_argument('--training.learning_rate', type=float, help="学习率")
     parser.add_argument('--training.local_epochs', type=int, help="客户端本地训练轮次")
-    parser.add_argument('--model.name', type=str, help="要使用的模型名称 (SimpleCNN or ComplexCNN)")
+    
+    # --- 系统与功能性参数 ---
     parser.add_argument('--device', type=str, help="训练设备 (cuda or cpu)")
-    # 新增功能性参数
-    parser.add_argument('--load_model', type=str, default=None, help="要加载的预训练模型文件的路径 (例如: saved_models/ComplexCNN_MNIST_best.pth)")
+    parser.add_argument('--load_model', type=str, default=None, help="要加载的预训练模型文件的路径")
     
     return parser.parse_args()
 
 def update_config_from_args(config, args):
-    """用命令行参数更新配置字典。"""
+    """
+    使用命令行传入的参数更新从 YAML 文件加载的配置字典。
+    """
     args_dict = vars(args)
     for key, value in args_dict.items():
+        # 只处理用户实际传入的参数
         if value is not None:
-            # 将点分隔的键转换为嵌套字典的键
+            # 将 'dataset.distribution' 这样的键转换为嵌套字典的更新
             keys = key.split('.')
             d = config
             for k in keys[:-1]:
@@ -53,13 +65,13 @@ def main():
     args = parse_args()
     update_config_from_args(config, args)
 
-    # 1. 生成一个唯一的实验时间戳
+    # 1. 生成一个唯一的实验时间戳，用于命名日志和图表
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
     # 2. 设置日志记录器
     logger = setup_logger(timestamp)
     logger.info("[主程序] 开始初始化...")
-    logger.info(f"[主程序] 当前配置: {config}")
+    logger.info(f"[主程序] 当前最终配置: {config}")
 
     # 3. 加载数据集
     logger.info(f"[主程序] 正在加载数据集: {config['dataset']['name']}...")
@@ -99,16 +111,14 @@ def main():
             exit(1)
 
     # 6. 创建所有客户端实例
-    logger.info("[主程序] 正在创建客户端实例...")
-    all_clients = []
-    for i in range(config['dataset']['num_clients']):
-        client = Client(cid=i, local_dataset=client_data_map[i], config=config)
-        all_clients.append(client)
+    logger.info("[主程序] 正在创建客户端实例...")    
+    all_clients = [Client(cid=i, local_dataset=client_data_map[i], config=config) for i in range(config['dataset']['num_clients'])]
     logger.info(f"[主程序] {len(all_clients)} 个客户端创建完成。")
 
     # 7. 初始化联邦学习策略
+    #    注意：FedAvgStrategy 被复用于 FedAvg 和 FedProx
     strategy = FedAvgStrategy(config, logger)
-    logger.info(f"[主程序] 已选择联邦策略: {type(strategy).__name__}")
+    logger.info(f"[主程序] 已选择联邦策略: {type(strategy).__name__} (用于算法: {config['federation']['algorithm']})")
 
     # 8. 初始化并创建服务器
     logger.info("[主程序] 正在初始化服务器...")

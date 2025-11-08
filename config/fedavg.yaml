@@ -1,15 +1,11 @@
-# 数据集配置
-dataset:
-  name: "MNIST"  # 数据集名称 (例如: "MNIST", "CIFAR10")
-  path: "./data"  # 数据存储路径
-  num_clients: 100  # 模拟的客户端总数
-  distribution: "non-iid" # 数据分布方式 ("iid" 或 "non-iid")
+# config/fedavg.yaml
 
 # 联邦学习全局配置
 federation:
-  algorithm: "FedAvg"  # 联邦学习算法
+  algorithm: "FedAvg"  # 联邦学习算法 ("FedAvg" 或 "FedProx")
   global_rounds: 2  # 全局通信总轮次
-  clients_per_round: 5  # 每轮随机选取的客户端数量
+  clients_per_round: 4  # 每轮随机选取的客户端数量
+  mu: 0.01  # FedProx 的近端项系数 (仅当 algorithm 为 "FedProx" 时有效)
 
 # 客户端本地训练配置
 training:
@@ -18,15 +14,16 @@ training:
   local_epochs: 5  # 每个客户端在本地的训练轮次
   learning_rate: 0.01  # 学习率
 
-# # 模型配置
-# model:
-#   name: "SimpleCNN"  # 模型名称
-#   input_channels: 1  # 输入通道数 (MNIST为1, CIFAR-10为3)
-#   output_dim: 10  # 输出维度 (类别数)
+# 数据集配置
+dataset:
+  name: "MNIST"  # 数据集名称 (例如: "MNIST", "CIFAR10")
+  path: "./data"  # 数据存储路径
+  num_clients: 100  # 模拟的客户端总数
+  distribution: "iid" # 数据分布方式 ("iid" 或 "non-iid")
 
 # 模型配置
 model:
-  name: "ComplexCNN"  # 模型名称
+  name: "ComplexCNN"  # 模型名称 (SimpleCNN or ComplexCNN)
   input_channels: 1  # 输入通道数 (MNIST为1, CIFAR-10为3)
   output_dim: 10  # 输出维度 (类别数)
 

@@ -8,13 +8,14 @@ import torch.nn.functional as F
 class Trainer:
     """
     封装了单个客户端的本地训练过程。
+    支持 FedAvg 和 FedProx 两种算法的本地训练。
     """
     def __init__(self, model, local_dataset, config: dict):
         """
         初始化训练器。
 
         参数:
-        model (torch.nn.Module): 需要训练的模型。
+        model (torch.nn.Module): 需要训练的模型。这是从服务器传来的全局模型的深拷贝。
         local_dataset (torch.utils.data.Dataset): 分配给该客户端的本地数据集。
         config (dict): 包含训练配置的字典，需要以下键:
                        'training': {
@@ -45,6 +46,28 @@ class Trainer:
             self.optimizer = optim.Adam(self.model.parameters(), lr=lr)
         else:
             raise ValueError(f"不支持的优化器: {optimizer_name}")
+
+        # 检查是否使用 FedProx 算法
+        self.algorithm = self.config['federation'].get('algorithm', 'FedAvg')
+        if self.algorithm == 'FedProx':
+            # 如果是 FedProx，则保存一份初始的全局模型权重，用于计算近端项
+            self.global_model_weights = {
+                name: param.clone().detach() for name, param in model.named_parameters()
+            }
+
+    def _calculate_proximal_term(self):
+        """
+        计算 FedProx 的近端项。
+        近端项 = (mu / 2) * ||本地模型权重 - 全局模型权重||^2
+        """
+        proximal_term = 0.0
+        for name, local_param in self.model.named_parameters():
+            if local_param.requires_grad:
+                global_param = self.global_model_weights[name].to(self.device)
+                proximal_term += ((local_param - global_param) ** 2).sum()
+        
+        mu = self.config['federation'].get('mu', 0.01)
+        return (mu / 2) * proximal_term
 
     def train(self):
         """
