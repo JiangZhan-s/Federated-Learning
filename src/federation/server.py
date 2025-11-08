@@ -11,9 +11,6 @@ class Server:
     负责协调整个联邦学习过程，包括模型分发、聚合和评估。
     """
     def __init__(self, global_model, all_clients: list, test_dataset, strategy, config: dict, logger: logging.Logger):
-        """
-        初始化服务器。
-        """
         self.global_model = global_model
         self.all_clients = all_clients
         self.strategy = strategy
@@ -32,11 +29,13 @@ class Server:
         启动并运行整个联邦学习流程。
 
         返回:
-        float: 整个训练过程中达到的最高测试准确率。
+        dict: 包含 'best_accuracy', 'accuracies', 'losses' 的结果字典。
         """
         self.logger.info("[服务器] 开始联邦学习流程...")
         
         best_accuracy = 0.0
+        accuracies = []
+        losses = []
         global_rounds = self.config['federation']['global_rounds']
         
         for current_round in range(global_rounds):
@@ -51,19 +50,27 @@ class Server:
                 self.global_model.load_state_dict(aggregated_weights)
                 self.logger.info("[服务器] 全局模型已更新。")
             
-            accuracy = self.evaluate()
+            accuracy, loss = self.evaluate()
+            accuracies.append(accuracy)
+            losses.append(loss)
+
             if accuracy > best_accuracy:
                 best_accuracy = accuracy
 
         self.logger.info(f"\n[服务器] 联邦学习流程结束。最佳准确率: {best_accuracy:.2f}%")
-        return best_accuracy
+        
+        return {
+            "best_accuracy": best_accuracy,
+            "accuracies": accuracies,
+            "losses": losses
+        }
 
     def evaluate(self):
         """
         在测试数据集上评估当前全局模型的性能。
 
         返回:
-        float: 当前模型在测试集上的准确率。
+        tuple: (accuracy, test_loss)
         """
         self.global_model.eval()
         self.global_model.to(self.device)
@@ -84,4 +91,4 @@ class Server:
         self.logger.info(f"[服务器评估] 测试集平均损失: {test_loss:.4f}, 准确率: {correct}/{len(self.test_loader.dataset)} ({accuracy:.2f}%)")
         
         self.global_model.to("cpu")
-        return accuracy
+        return accuracy, test_loss

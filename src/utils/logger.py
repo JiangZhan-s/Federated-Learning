@@ -4,7 +4,7 @@ import logging
 import os
 from datetime import datetime
 
-def setup_logger():
+def setup_logger(timestamp: str):
     """
     设置日志记录器，使其同时输出到控制台和文件。
 
@@ -17,8 +17,7 @@ def setup_logger():
         os.makedirs(log_dir)
 
     # 生成带时间戳的日志文件名
-    current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    log_filename = os.path.join(log_dir, f"experiment_{current_time}.log")
+    log_filename = os.path.join(log_dir, f"experiment_{timestamp}.log")
 
     # 获取根日志记录器
     logger = logging.getLogger()
