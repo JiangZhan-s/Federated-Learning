@@ -1,0 +1,34 @@
+# 数据集配置
+dataset:
+  name: "MNIST"  # 数据集名称 (例如: "MNIST", "CIFAR10")
+  path: "./data"  # 数据存储路径
+  num_clients: 100  # 模拟的客户端总数
+  distribution: "non-iid" # 数据分布方式 ("iid" 或 "non-iid")
+
+# 联邦学习全局配置
+federation:
+  algorithm: "FedAvg"  # 联邦学习算法
+  global_rounds: 5  # 全局通信总轮次
+  clients_per_round: 10  # 每轮随机选取的客户端数量
+
+# 客户端本地训练配置
+training:
+  optimizer: "SGD"  # 优化器
+  batch_size: 10  # 训练批次大小
+  local_epochs: 5  # 每个客户端在本地的训练轮次
+  learning_rate: 0.01  # 学习率
+
+# # 模型配置
+# model:
+#   name: "SimpleCNN"  # 模型名称
+#   input_channels: 1  # 输入通道数 (MNIST为1, CIFAR-10为3)
+#   output_dim: 10  # 输出维度 (类别数)
+
+# 模型配置
+model:
+  name: "ComplexCNN"  # 模型名称
+  input_channels: 1  # 输入通道数 (MNIST为1, CIFAR-10为3)
+  output_dim: 10  # 输出维度 (类别数)
+
+# 运行设备配置
+device: "cuda"  # 训练设备 ("cuda" 或 "cpu")
