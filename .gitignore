@@ -19,11 +19,10 @@ venv.bak/
 # !data/.gitkeep
 data/
 
-!src/data
-
 # 日志和实验结果
 logs/
 plots/
+saved_models/
 
 # IDE 和编辑器配置文件
 .vscode/
@@ -37,3 +36,5 @@ dist/
 # 覆盖率报告
 .coverage
 htmlcov/
+
+!src/data
