@@ -32,19 +32,27 @@ def split_data(train_dataset, config: dict):
     num_clients = config['dataset']['num_clients']
     distribution = config['dataset']['distribution']
     
+    # 获取数据集总样本数
     num_items = len(train_dataset)
+    # 初始化客户端数据映射，即从客户端 ID 到数据子集的映射
     client_data_map = {}
 
     if distribution == "iid":
         # IID: 随机打乱，然后平均分配
         all_indices = np.arange(num_items)
+        # shuffle的功能是原地随机打乱数组
         np.random.shuffle(all_indices)
+        # 每个客户端分配的样本数，//是整数除法
         items_per_client = num_items // num_clients
         
         for i in range(num_clients):
+            # 开始索引是客户端ID乘以每客户端样本数
             start_idx = i * items_per_client
+            # 结束索引是下一个客户端的开始索引
             end_idx = (i + 1) * items_per_client
+            # indices是分配给客户端i的样本索引
             client_indices = all_indices[start_idx:end_idx]
+            # 创建数据子集，Subset语法是Subset(数据集, 索引列表)，返回一个子集对象
             client_data_map[i] = Subset(train_dataset, client_indices)
 
     elif distribution == "non-iid":
@@ -54,8 +62,9 @@ def split_data(train_dataset, config: dict):
         # 1. 获取所有样本的标签
         labels = np.array(train_dataset.targets)
         
-        # 2. 按标签对样本索引进行排序
+        # 2. 按标签对样本索引进行排序,返回排序后的索引数组
         sorted_indices = np.argsort(labels)
+        # labels[sorted_indices] 是排序后的标签数组{0,0,0,1,1,1,2,2,2,...}
         
         # 3. 将排序后的索引划分为 200 个分片 (shards)
         num_shards = 200
@@ -65,6 +74,7 @@ def split_data(train_dataset, config: dict):
         for i in range(num_shards):
             start_idx = i * shard_size
             end_idx = start_idx + shard_size
+            # 将每个分片的索引添加到列表中
             shards.append(sorted_indices[start_idx:end_idx])
         
         # 4. 为每个客户端分配 2 个分片
