@@ -52,10 +52,16 @@ class SimpleCNN(nn.Module):
         self.fc2 = nn.Linear(50, output_dim)
 
     def forward(self, x):
+        # 计算公式为 (W - F + 2P) / S + 1 ，带入这里是 (28 - 5 + 0)/1 +1 = 24
+        # 池化计算为 (24 - 2)/2 + 1 = 12
         x = F.relu(F.max_pool2d(self.conv1(x), 2))
+        # 计算公式为 (W - F + 2P) / S + 1 ，带入这里是 (24 - 5 + 0)/1 +1 = 20，20是conv2的输出通道数
+        # 池化计算为 (20 - 2)/2 + 1 = 10
         x = F.relu(F.max_pool2d(self.conv2(x), 2))
+        # 展平多维输入数据为二维，第一维是batch size，第二维是特征数
         x = x.view(x.size(0), -1)
-        
+        # 动态调整全连接层输入维度
+        # 这是一个小技巧，确保模型可以适应不同尺寸的输入图片
         if self.fc1.in_features != x.shape[1]:
             self.fc1 = nn.Linear(x.shape[1], 50).to(x.device)
 

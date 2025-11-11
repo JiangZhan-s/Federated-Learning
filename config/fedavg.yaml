@@ -23,7 +23,7 @@ dataset:
 
 # 模型配置
 model:
-  name: "ComplexCNN"  # 模型名称 (SimpleCNN or ComplexCNN)
+  name: "SimpleCNN"  # 模型名称 (SimpleCNN or ComplexCNN)
   input_channels: 3  # 输入通道数 (MNIST为1, CIFAR-10为3)
   output_dim: 10  # 输出维度 (类别数)
 
